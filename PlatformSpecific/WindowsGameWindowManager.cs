@@ -88,9 +88,10 @@ internal class WindowsGameWindowManager : IGameWindowManager
 
 #if XNA
         gameForm.DesktopLocation = new System.Drawing.Point(x, y);
-#else
+#elif !BLAZOR
         game.Window.Position = new Microsoft.Xna.Framework.Point(screenX + x, screenY + y);
 #endif
+        // In the browser there is no window position to set; CenterOnScreen is a no-op on BLAZOR.
     }
 
     /// <summary>

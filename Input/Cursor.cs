@@ -127,6 +127,13 @@ public class Cursor : DrawableGameComponent
          * A shared cursor is valid as long as the module from which it was loaded remains in memory.
          * LoadCursorFromFile creates a shared cursor */
     }
+#else
+    /// <summary>
+    /// Loading a native OS cursor is not supported on non-desktop (e.g. browser) builds;
+    /// the software cursor sprite is used instead. No-op.
+    /// </summary>
+    /// <param name="path">The path to the cursor (.cur) file (ignored).</param>
+    public void LoadNativeCursor(string path) { }
 #endif
 
     public override void Initialize()

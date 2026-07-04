@@ -48,13 +48,12 @@ public class WindowManager : DrawableGameComponent
     /// </summary>
     public event EventHandler RenderResolutionChanged;
 
-#if WINFORMS
     /// <summary>
     /// Raised when the size of the game window has been changed by the user or the operating system.
     /// This event is not raised by calling <see cref="InitGraphicsMode(int, int, bool)"/>.
+    /// On non-desktop (e.g. browser) builds it may be raised on canvas resize.
     /// </summary>
     public event EventHandler WindowSizeChangedByUser;
-#endif
 
     /// <summary>
     /// The input cursor.
@@ -548,7 +547,20 @@ public class WindowManager : DrawableGameComponent
     {
         gameWindowManager.AllowClosing();
     }
-
+#else
+    // Window-management operations are no-ops on non-desktop (e.g. browser) builds, where there
+    // is no OS window to minimize/hide/flash/etc. Provided so shared UI code compiles and runs.
+    public void MinimizeWindow() { }
+    public void MaximizeWindow() { }
+    public void HideWindow() { }
+    public void ShowWindow() { }
+    public void FlashWindow() { }
+    public void SetIcon(string path) { }
+    public IntPtr GetWindowHandle() => IntPtr.Zero;
+    public void SetMaximizeBox(bool value) { }
+    public void SetControlBox(bool value) { }
+    public void PreventClosing() { }
+    public void AllowClosing() { }
 #endif
     /// <summary>
     /// Removes a control from the window manager.

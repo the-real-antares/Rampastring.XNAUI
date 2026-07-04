@@ -980,7 +980,7 @@ public class XNAControl : DrawableGameComponent
         _initScaling = _scaling;
     }
 
-    protected override void OnEnabledChanged(object sender, EventArgs args)
+    private void HandleEnabledChanged()
     {
         if (!Enabled)
         {
@@ -988,11 +988,9 @@ public class XNAControl : DrawableGameComponent
             IsRightPressedOn = false;
             IsMiddlePressedOn = false;
         }
-
-        base.OnEnabledChanged(sender, args);
     }
 
-    protected override void OnVisibleChanged(object sender, EventArgs args)
+    private void HandleVisibleChanged()
     {
         if (Initialized)
         {
@@ -1007,9 +1005,35 @@ public class XNAControl : DrawableGameComponent
                     RenderTarget = null;
             }
         }
+    }
 
+    // KNI changed these protected virtuals to a single-parameter (EventArgs) signature;
+    // MonoGame uses (object sender, EventArgs). Adapt per platform, sharing the body above.
+#if BLAZOR
+    protected override void OnEnabledChanged(EventArgs args)
+    {
+        HandleEnabledChanged();
+        base.OnEnabledChanged(args);
+    }
+
+    protected override void OnVisibleChanged(EventArgs args)
+    {
+        HandleVisibleChanged();
+        base.OnVisibleChanged(args);
+    }
+#else
+    protected override void OnEnabledChanged(object sender, EventArgs args)
+    {
+        HandleEnabledChanged();
+        base.OnEnabledChanged(sender, args);
+    }
+
+    protected override void OnVisibleChanged(object sender, EventArgs args)
+    {
+        HandleVisibleChanged();
         base.OnVisibleChanged(sender, args);
     }
+#endif
 
     /// <summary>
     /// Called for a control with an unique render target when its Visible= is set to false.

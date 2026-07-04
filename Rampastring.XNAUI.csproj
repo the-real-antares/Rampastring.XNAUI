@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework Condition="'$(Configuration)' == 'UniversalGLDebug' Or '$(Configuration)' == 'UniversalGLRelease'">net8.0</TargetFramework>
-    <TargetFrameworks Condition="'$(Configuration)' != 'UniversalGLDebug' And '$(Configuration)' != 'UniversalGLRelease'">net8.0-windows;net48</TargetFrameworks>
-    <UseWindowsForms Condition="'$(Configuration)' != 'UniversalGLDebug' And '$(Configuration)' != 'UniversalGLRelease'">true</UseWindowsForms>
+    <TargetFramework Condition="'$(Configuration)' == 'UniversalGLDebug' Or '$(Configuration)' == 'UniversalGLRelease' Or '$(Configuration)' == 'BlazorDebug' Or '$(Configuration)' == 'BlazorRelease'">net8.0</TargetFramework>
+    <TargetFrameworks Condition="'$(Configuration)' != 'UniversalGLDebug' And '$(Configuration)' != 'UniversalGLRelease' And '$(Configuration)' != 'BlazorDebug' And '$(Configuration)' != 'BlazorRelease'">net8.0-windows;net48</TargetFrameworks>
+    <UseWindowsForms Condition="'$(Configuration)' != 'UniversalGLDebug' And '$(Configuration)' != 'UniversalGLRelease' And '$(Configuration)' != 'BlazorDebug' And '$(Configuration)' != 'BlazorRelease'">true</UseWindowsForms>
     <Title Condition="'$(Configuration)' == 'WindowsDXRelease'">Rampastring.XNAUI (WindowsDX)</Title>
     <Title Condition="'$(Configuration)' == 'WindowsGLRelease'">Rampastring.XNAUI (WindowsGL)</Title>
     <Title Condition="'$(Configuration)' == 'UniversalGLRelease'">Rampastring.XNAUI (UniversalGL)</Title>
@@ -31,7 +31,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Platforms>AnyCPU</Platforms>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Configurations>WindowsDXDebug;WindowsDXRelease;WindowsGLDebug;WindowsGLRelease;WindowsXNADebug;WindowsXNARelease;UniversalGLDebug;UniversalGLRelease</Configurations>
+    <Configurations>WindowsDXDebug;WindowsDXRelease;WindowsGLDebug;WindowsGLRelease;WindowsXNADebug;WindowsXNARelease;UniversalGLDebug;UniversalGLRelease;BlazorDebug;BlazorRelease</Configurations>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <IncludeSymbols>true</IncludeSymbols>
@@ -55,7 +55,7 @@
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'WindowsDXDebug' Or '$(Configuration)' == 'UniversalGLDebug' Or '$(Configuration)' == 'WindowsGLDebug' Or '$(Configuration)' == 'WindowsXNADebug'">
+  <PropertyGroup Condition="'$(Configuration)' == 'WindowsDXDebug' Or '$(Configuration)' == 'UniversalGLDebug' Or '$(Configuration)' == 'WindowsGLDebug' Or '$(Configuration)' == 'WindowsXNADebug' Or '$(Configuration)' == 'BlazorDebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'WindowsDXDebug' Or '$(Configuration)' == 'WindowsDXRelease'">
@@ -65,13 +65,19 @@
     <DefineConstants>$(DefineConstants);GL</DefineConstants>
     <DefineConstants Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">$(DefineConstants);ISWINDOWS</DefineConstants>
   </PropertyGroup>
+  <!-- Browser (KNI Blazor WebGL) build. Constant is BLAZOR (deliberately no "GL" substring so the
+       DesktopGL PackageReference / IncludeDesktopGLAssemblies target, gated on DefineConstants.Contains('GL'),
+       stays excluded). Source only branches on WINFORMS/XNA, so this compiles the same files as UniversalGL. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'BlazorDebug' Or '$(Configuration)' == 'BlazorRelease'">
+    <DefineConstants>$(DefineConstants);BLAZOR</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'WindowsGLDebug' Or '$(Configuration)' == 'WindowsGLRelease'">
     <DefineConstants>$(DefineConstants);GL;WINFORMS;ISWINDOWS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'WindowsXNADebug' Or '$(Configuration)' == 'WindowsXNARelease'">
     <DefineConstants>$(DefineConstants);XNA;WINFORMS;ISWINDOWS</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='WindowsDXRelease' Or '$(Configuration)'=='UniversalGLRelease' Or '$(Configuration)'=='WindowsGLRelease' Or '$(Configuration)'=='WindowsXNARelease'">
+  <PropertyGroup Condition="'$(Configuration)'=='WindowsDXRelease' Or '$(Configuration)'=='UniversalGLRelease' Or '$(Configuration)'=='WindowsGLRelease' Or '$(Configuration)'=='WindowsXNARelease' Or '$(Configuration)'=='BlazorRelease'">
     <Optimize>true</Optimize>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
@@ -131,6 +137,18 @@
   <ItemGroup Condition="$(DefineConstants.Contains('GL'))">
     <PackageReference Include="MonoGame.Framework.DesktopGL" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" Version="3.8.0.1641" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" Version="3.8.1.303" />
+  </ItemGroup>
+  <!-- KNI (nkast) XNA-compatible framework for the browser build. These are the API-surface packages;
+       the concrete WebGL platform backend (nkast.Kni.Platform.Blazor.GL) is referenced by the host app,
+       not by this UI library. -->
+  <ItemGroup Condition="$(DefineConstants.Contains('BLAZOR'))">
+    <PackageReference Include="nkast.Xna.Framework" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Game" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Graphics" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Content" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Input" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Audio" Version="4.2.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Media" Version="4.2.9001" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
     <Reference Include="Microsoft.Xna.Framework">

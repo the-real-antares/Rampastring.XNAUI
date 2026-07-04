@@ -286,7 +286,7 @@ public class XNATextRenderer : XNAControl
 
                 while (true)
                 {
-                    var words = remainingText.Split([' '], StringSplitOptions.None);
+                    var words = remainingText.Split(' ', StringSplitOptions.None);
                     for (int wIndex = 0; wIndex < words.Length; wIndex++)
                     {
                         string word = words[wIndex];
