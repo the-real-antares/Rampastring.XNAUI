@@ -340,9 +340,9 @@ public class WindowManager : DrawableGameComponent
         SoundPlayer = new SoundPlayer(Game);
 
         gameWindowManager = new WindowsGameWindowManager(Game);
+        gameWindowManager.ClientSizeChanged += GameWindowManager_ClientSizeChanged;
 #if WINFORMS
         gameWindowManager.GameWindowClosing += GameWindowManager_GameWindowClosing;
-        gameWindowManager.ClientSizeChanged += GameWindowManager_ClientSizeChanged;
 #else
         Game.Exiting += GameWindowManager_GameWindowClosing;
 #endif
@@ -355,15 +355,23 @@ public class WindowManager : DrawableGameComponent
 #endif
     }
 
-#if WINFORMS
     private void GameWindowManager_ClientSizeChanged(object sender, EventArgs e)
     {
+#if WINFORMS
         WindowWidth = gameWindowManager.GetWindowWidth();
         WindowHeight = gameWindowManager.GetWindowHeight();
+#else
+        // The game window (on Blazor: the browser canvas, already resized by the platform
+        // before this event fires) is the size authority on non-WinForms platforms.
+        WindowWidth = Game.Window.ClientBounds.Width;
+        WindowHeight = Game.Window.ClientBounds.Height;
+#endif
+        if (WindowWidth <= 0 || WindowHeight <= 0)
+            return;
+
         RecalculateScaling();
         WindowSizeChangedByUser?.Invoke(this, EventArgs.Empty);
     }
-#endif
 
     private void GameWindowManager_GameWindowClosing(object sender, EventArgs e)
     {
@@ -610,6 +618,17 @@ public class WindowManager : DrawableGameComponent
     public bool InitGraphicsMode(int iWidth, int iHeight, bool bFullScreen)
     {
         Logger.Log("InitGraphicsMode: " + iWidth + "x" + iHeight);
+#if BLAZOR
+        // In the browser the canvas is sized by the page, and the platform's display mode
+        // information is not meaningful. Adopt the real canvas size instead of driving the
+        // device, so requesting a resolution never shrinks the presentation away from the
+        // actual drawing buffer.
+        WindowWidth = Game.Window.ClientBounds.Width;
+        WindowHeight = Game.Window.ClientBounds.Height;
+        RecalculateScaling();
+
+        return true;
+#else
         WindowWidth = iWidth;
         WindowHeight = iHeight;
         // If we aren't using a full screen mode, the height and width of the window can
@@ -619,9 +638,7 @@ public class WindowManager : DrawableGameComponent
             if ((iWidth <= GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width)
                 && (iHeight <= GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height))
             {
-#if WINFORMS
                 gameWindowManager.ClientSizeChanged -= GameWindowManager_ClientSizeChanged;
-#endif
 
                 graphics.PreferredBackBufferWidth = iWidth;
                 graphics.PreferredBackBufferHeight = iHeight;
@@ -629,9 +646,7 @@ public class WindowManager : DrawableGameComponent
                 graphics.ApplyChanges();
                 RecalculateScaling();
 
-#if WINFORMS
                 gameWindowManager.ClientSizeChanged += GameWindowManager_ClientSizeChanged;
-#endif
 
                 return true;
             }
@@ -649,9 +664,7 @@ public class WindowManager : DrawableGameComponent
                 {
                     // The mode is supported, so set the buffer formats, apply changes and return
 
-#if WINFORMS
                     gameWindowManager.ClientSizeChanged -= GameWindowManager_ClientSizeChanged;
-#endif
 
                     graphics.PreferredBackBufferWidth = iWidth;
                     graphics.PreferredBackBufferHeight = iHeight;
@@ -659,9 +672,7 @@ public class WindowManager : DrawableGameComponent
                     graphics.ApplyChanges();
                     RecalculateScaling();
 
-#if WINFORMS
                     gameWindowManager.ClientSizeChanged += GameWindowManager_ClientSizeChanged;
-#endif
 
                     return true;
                 }
@@ -669,6 +680,7 @@ public class WindowManager : DrawableGameComponent
         }
 
         return false;
+#endif
     }
 
     /// <summary>
