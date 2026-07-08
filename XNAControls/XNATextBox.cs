@@ -5,7 +5,6 @@ using Rampastring.XNAUI.Input;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
-using TextCopy;
 
 namespace Rampastring.XNAUI.XNAControls;
 
@@ -330,7 +329,7 @@ public class XNATextBox : XNAControl
     {
         base.Initialize();
 
-#if !XNA
+#if !XNA && !BLAZOR
         Game.Window.TextInput += Window_TextInput;
 #else
         KeyboardEventInput.CharEntered += KeyboardEventInput_CharEntered;
@@ -361,7 +360,7 @@ public class XNATextBox : XNAControl
 
     public override void Kill()
     {
-#if !XNA
+#if !XNA && !BLAZOR
         Game.Window.TextInput -= Window_TextInput;
 #else
         KeyboardEventInput.CharEntered -= KeyboardEventInput_CharEntered;
@@ -373,7 +372,7 @@ public class XNATextBox : XNAControl
         base.Kill();
     }
 
-#if XNA
+#if XNA || BLAZOR
     private void KeyboardEventInput_CharEntered(object sender, KeyboardEventArgs e)
     {
         if (!IMEDisabled && WindowManager.IMEHandler != null)
@@ -576,7 +575,7 @@ public class XNATextBox : XNAControl
                 if (!IsValidSelection())
                     break;
 
-                ClipboardService.SetText(text.Substring(SelectionStartPosition, SelectionLength));
+                RClipboard.SetText(text.Substring(SelectionStartPosition, SelectionLength));
                 int newInputPosition = SelectionStartPosition;
                 Text = text.Substring(0, SelectionStartPosition) + text.Substring(SelectionEndPosition);
                 InputPosition = newInputPosition;
@@ -594,7 +593,7 @@ public class XNATextBox : XNAControl
                 if (!Keyboard.IsCtrlHeldDown())
                     break;
 
-                string clipboardText = ClipboardService.GetText();
+                string clipboardText = RClipboard.GetText();
                 if (clipboardText == null)
                     return true;
 
@@ -715,7 +714,7 @@ public class XNATextBox : XNAControl
                 if (!IsValidSelection())
                     break;
 
-                ClipboardService.SetText(text.Substring(SelectionStartPosition, SelectionLength));
+                RClipboard.SetText(text.Substring(SelectionStartPosition, SelectionLength));
 
                 return true;
             case Keys.A:

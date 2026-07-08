@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-#if WINFORMS
+#if WINFORMS || BLAZOR
 using Rampastring.XNAUI.Input;
-using TextCopy;
 #endif
 using System;
 using System.Collections.Generic;
@@ -609,7 +608,7 @@ public class XNAListBox : XNAPanel
         Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
 #endif
 
-#if !XNA
+#if !XNA && !BLAZOR
         Game.Window.TextInput += Window_TextInput;
 #else
         KeyboardEventInput.CharEntered += KeyboardEventInput_CharEntered;
@@ -633,7 +632,7 @@ public class XNAListBox : XNAPanel
         Keyboard.OnKeyPressed -= Keyboard_OnKeyPressed;
 #endif
 
-#if !XNA
+#if !XNA && !BLAZOR
         Game.Window.TextInput -= Window_TextInput;
 #else
         KeyboardEventInput.CharEntered -= KeyboardEventInput_CharEntered;
@@ -675,11 +674,11 @@ public class XNAListBox : XNAPanel
             return;
 
         if (e.PressedKey == Keys.C && Keyboard.IsCtrlHeldDown())
-            ClipboardService.SetText(SelectedItem.Text);
+            RClipboard.SetText(SelectedItem.Text);
     }
 #endif
 
-#if XNA
+#if XNA || BLAZOR
     private void KeyboardEventInput_CharEntered(object sender, KeyboardEventArgs e)
     {
         HandleCharInput(e.Character);

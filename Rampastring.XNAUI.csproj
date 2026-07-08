@@ -122,8 +122,12 @@
     <None Remove="build\**" />
     <None Remove="References\**" />
   </ItemGroup>
-  <ItemGroup Condition="!$(DefineConstants.Contains('XNA'))">
+  <!-- KeyboardEventArgs is shared by the Win32 WndProc input hook (XNA) and the Blazor character
+       channel; the WndProc hook itself is XNA-only. -->
+  <ItemGroup Condition="!$(DefineConstants.Contains('XNA')) And !$(DefineConstants.Contains('BLAZOR'))">
     <Compile Remove="Input\KeyboardEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(DefineConstants.Contains('XNA'))">
     <Compile Remove="Input\KeyboardEventInput.cs" />
   </ItemGroup>
   <ItemGroup>
