@@ -15,6 +15,11 @@ namespace Rampastring.XNAUI;
 public struct SpriteBatchSettings
 {
     public SpriteBatchSettings(SpriteSortMode ssm, BlendState bs, SamplerState ss, DepthStencilState dss, RasterizerState rs, Effect effect)
+        : this(ssm, bs, ss, dss, rs, effect, null)
+    {
+    }
+
+    public SpriteBatchSettings(SpriteSortMode ssm, BlendState bs, SamplerState ss, DepthStencilState dss, RasterizerState rs, Effect effect, Matrix? transformMatrix)
     {
         SpriteSortMode = ssm;
         BlendState = bs;
@@ -22,6 +27,7 @@ public struct SpriteBatchSettings
         DepthStencilState = dss;
         RasterizerState = rs;
         Effect = effect;
+        TransformMatrix = transformMatrix;
     }
 
     public readonly SpriteSortMode SpriteSortMode;
@@ -30,6 +36,12 @@ public struct SpriteBatchSettings
     public readonly DepthStencilState DepthStencilState;
     public readonly RasterizerState RasterizerState;
     public readonly Effect Effect;
+
+    /// <summary>
+    /// An optional transform matrix applied to the sprite batch,
+    /// e.g. for translating drawing in world space.
+    /// </summary>
+    public readonly Matrix? TransformMatrix;
 }
 
 /// <summary>
@@ -271,14 +283,14 @@ public static class Renderer
     //blendState.ColorSourceBlend = Blend.SourceAlpha;
 
     internal static void BeginDrawInternal(SpriteBatchSettings settings) =>
-        BeginDrawInternal(settings.SpriteSortMode, settings.BlendState, settings.SamplerState, settings.DepthStencilState, settings.RasterizerState, settings.Effect);
+        BeginDrawInternal(settings.SpriteSortMode, settings.BlendState, settings.SamplerState, settings.DepthStencilState, settings.RasterizerState, settings.Effect, settings.TransformMatrix);
 
-    internal static void BeginDrawInternal(SpriteSortMode ssm, BlendState bs, SamplerState ss, DepthStencilState dss, RasterizerState rs, Effect effect)
+    internal static void BeginDrawInternal(SpriteSortMode ssm, BlendState bs, SamplerState ss, DepthStencilState dss, RasterizerState rs, Effect effect, Matrix? transformMatrix = null)
     {
 #if XNA
         spriteBatch.Begin(ssm, bs, ss, DepthStencilState.Default, RasterizerState.CullNone);
 #else
-        spriteBatch.Begin(ssm, bs, ss, dss, rs, effect);
+        spriteBatch.Begin(ssm, bs, ss, dss, rs, effect, transformMatrix);
 #endif
     }
 
